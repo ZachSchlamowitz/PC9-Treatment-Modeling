@@ -30,7 +30,7 @@ cond2 = R(0) == 60;
 % Solve odes
 odes = [ode1; ode2];
 conds = [cond1; cond2];
-[Vsol(t), Rsol(t)] = dsolve(odes, conds)
+[Vsol(t), Rsol(t)] = dsolve(odes, conds)  %z: Andrew suggests using ode23 rather than dsolve
 
 
 
