@@ -1,20 +1,32 @@
 % ODE Model of PC-9  Cell Response to Palbociclib and Osimertinib Treatment
 % Author: Zach Schlamowitz
 
-% Parameter values
+%% Parameter values
 t_p = NaN; % hour of dosing with palbociclib; =NaN when not adding drug
 P_0 = 10;  % Initial concentration of palbociclib dose (uM)
 t_E = NaN; % hour of dosing with osimertinib; =NaN when not adding drug
 E_0 = 10;  % Initial concentration of osimertinib dose (uM)
 beta = 1/13; % Fraction of S/G2 cells which enter mitosis in a given hour
 
-% (Exaggerated) Parameter functions
+%% (Exaggerated) Parameter functions
+% Structs for viabilty Hill curve parameters
+v.E0 = 95;  % effect (viability) in absence of drug (percentage)
+v.Einf = 5; % maximum possible effect (viability) with drug (percentage)
+v.EC50 = 2; % effect (viability) of drug at half max efficacy concentration of drug (percentage)
+v.hill = 5; % Hill slope coefficient
+r = v;  % NOTE: here MATLAB creates separate copy of struct rather than an alias
+
+% Viability Hill curves for Vulnerable, Resistant populations
+syms viability_V(C_E) viability_R(C_E)
+viability_V(C_E) = v.E0 + (v.Einf - v.E0)/(1 + (v.EC50/C_E)^v.hill);
+viability_R(C_E) = v.E0 + (v.Einf - v.E0)/(1 + (2*v.EC50/C_E)^v.hill); % resistant population has twice the EC50 of vulnerable population
+
 syms alpha(C_p) d_V(C_E) d_R(C_E)
 alpha(C_p) = 0.85 - 0.07*C_p; % progression (G1 --> S/G2) fraction 
-d_V(C_E) = 100/(1.05+10*exp(-5*C_E)); % death fraction of vulnerable (G1) cells
-d_R(C_E) = 50/(1+10*exp(-C_E)); % death fraction of resistant (S/G2) cells
+d_V(C_E) = 100 - viabilty_V(C_E); % death fraction of vulnerable (G1) cells
+d_R(C_E) = 100 - viabilty_R(C_E); % death fraction of resistant (S/G2) cells
 
-% Main equations
+%% Main equations
 syms V(t) R(t) C_p(t) C_E(t)
 ode1 = diff(V,t) == -alpha*V - d_V*V + 2*beta*R;
 ode2 = diff(R,t) ==  alpha*V - d_R*R -   beta*R;
