@@ -54,16 +54,29 @@ r = v;  % NOTE: here MATLAB creates separate copy of struct rather than an alias
 
 %% Main equations
 
-tspan = [0 24];
+tspan = [0 72];
 initconds = [40; 60];
 [time, state] = ode23(@pc9treat, tspan, initconds)
+state(:,3) = state(:,1) + state(:,2);  % total population
 
 % Plot
 plot(time, state, '-o')
 title('Vulnerable and Resistant Populations Over Time')
 xlabel('Time (hrs)')
 ylabel('Gross Population')
-legend('Vulnerable', 'Resistant')
+legend('Vulnerable', 'Resistant', 'Total Population')
+xlim([-10 106])
+ylim([-10 350])
+
+% Plot Phase Plane
+figure
+plot(state(:,1), state(:,2))
+title('Phase Plane Portrait')
+xlabel('Vulnerable Population')
+ylabel('Resistant Population')
+% xlim([-10 110])
+% ylim([-10 110])
+
 
 % function state = pc9treat(t,S0)
 %     state = zeros(2,1);
