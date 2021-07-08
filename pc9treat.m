@@ -53,14 +53,14 @@ end
 
 function C_p = palbo(t, t_p, P_0)
     if t>t_p
-        C_p = P_0*(1/2)^(t-27);
+        C_p = P_0*(1/2)^(t/27);
     else
         C_p = 0;
     end
 end
 function C_E = osi(t, t_E, E_0)
     if t>t_E
-        C_E = E_0*(1/2)^(t-48);
+        C_E = E_0*(1/2)^(t/48);
     else
         C_E = 0;
     end
