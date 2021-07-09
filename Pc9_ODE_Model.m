@@ -2,19 +2,19 @@
 % Author: Zach Schlamowitz
 
 %% Parameter values
-t_p = NaN; % hour of dosing with palbociclib; =NaN when not adding drug
-P_0 = 10;  % Initial concentration of palbociclib dose (uM)
-t_E = NaN; % hour of dosing with osimertinib; =NaN when not adding drug
-E_0 = 10;  % Initial concentration of osimertinib dose (uM)
-beta = 1/13; % Fraction of S/G2 cells which enter mitosis in a given hour
-
-% %% (Exaggerated) Parameter functions
-% % Structs for viabilty Hill curve parameters
-v.E0 = 95;  % effect (viability) in absence of drug (percentage)
-v.Einf = 5; % maximum possible effect (viability) with drug (percentage)
-v.EC50 = 2; % effect (viability) of drug at half max efficacy concentration of drug (percentage)
-v.hill = 5; % Hill slope coefficient
-r = v;  % NOTE: here MATLAB creates separate copy of struct rather than an alias
+% t_p = NaN; % hour of dosing with palbociclib; =NaN when not adding drug
+% P_0 = 10;  % Initial concentration of palbociclib dose (uM)
+% t_E = NaN; % hour of dosing with osimertinib; =NaN when not adding drug
+% E_0 = 10;  % Initial concentration of osimertinib dose (uM)
+% beta = 1/13; % Fraction of S/G2 cells which enter mitosis in a given hour
+% 
+% % %% (Exaggerated) Parameter functions
+% % % Structs for viabilty Hill curve parameters
+% v.E0 = 95;  % effect (viability) in absence of drug (percentage)
+% v.Einf = 5; % maximum possible effect (viability) with drug (percentage)
+% v.EC50 = 2; % effect (viability) of drug at half max efficacy concentration of drug (percentage)
+% v.hill = 5; % Hill slope coefficient
+% r = v;  % NOTE: here MATLAB creates separate copy of struct rather than an alias
 % 
 % % Viability Hill curves for Vulnerable, Resistant populations
 % syms viability_V(C_E) viability_R(C_E)
@@ -55,6 +55,7 @@ r = v;  % NOTE: here MATLAB creates separate copy of struct rather than an alias
 %% Main equations
 
 tspan = [0 72];
+tspan = [0:72];
 initconds = [40; 60];
 [time, state] = ode23(@pc9treat, tspan, initconds)
 state(:,3) = state(:,1) + state(:,2);  % total population
