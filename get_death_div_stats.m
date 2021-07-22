@@ -2,8 +2,14 @@
 % Initialize Output Structs
 % gef_stats_0p1uM = struct();
 gef_stats_0p5uM = struct();
-gef_stats_1uM = struct();
-datasets = [gef_stats_0p5uM gef_stats_1uM];
+% gef_stats_1uM = struct();
+
+% Get dataset structs and arrange in one struct
+% load('CleanGef0_1_200cells');
+load('Clean_Gef0_05_174cells');
+% load('Clean_Gef_1uM_200cells');
+
+datasets = [Clean_Gef0_05_200cells]; % [CleanGef0_1]
 
 % % For 1uM Gefitnib:
 % num_divs_per_cell = sum(Clean_Gef_1uM_200cells.divisionMatrixDataset,2);
@@ -54,13 +60,14 @@ datasets = [gef_stats_0p5uM gef_stats_1uM];
 % Loop over relevant datasets and run statistic extraction algorithm
 for k=1:numel(datasets)
     
-    first_24 = datasets(k).deathMatrixDataset(:,1:(24*4)); % Death in first 24 hours
-    data_subsets = [datasets(k) first_24];
-    subset_stats = [];
+    full_72 = struct('deathMatrix',datasets(k).deathMatrixDataset);
+    first_24 = struct('deathMatrix',datasets(k).deathMatrixDataset(:,1:(24*4)));  % Death in first 24 hours
+    data_subsets = [full_72 first_24];
+    subset_stats = [struct() struct()];
     
     for j=1:numel(data_subsets)
-        num_deaths_per_cell = sum(datasets(k).deathMatrixDataset,2);
-        death_flags = zeros(numel(num_deaths_per_cell));
+        num_deaths_per_cell = sum(data_subsets(j).deathMatrix,2);
+        death_flags = zeros(numel(num_deaths_per_cell),1);
         invalid_deaths = 0;
         for i=1:numel(num_deaths_per_cell)
             if num_deaths_per_cell(i) > 1
@@ -73,7 +80,6 @@ for k=1:numel(datasets)
         end
         % Store stats computed for this sub-dataset (either first 24 or all
         % 72 hrs) of this dose of gefitnib
-        subset_stats(j) = struct();
         subset_stats(j).num_deaths_per_cell = num_deaths_per_cell;
         subset_stats(j).death_flags = death_flags;
         subset_stats(j).invalid_deaths = invalid_deaths;
