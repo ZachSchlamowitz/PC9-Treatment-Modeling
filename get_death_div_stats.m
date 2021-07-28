@@ -25,16 +25,16 @@
 
 %% Initialization
 % Initialize Output Structs
-% gef_stats_0p1uM = struct();
+gef_stats_0p1uM = struct();
 gef_stats_0p5uM = struct();
-% gef_stats_1uM = struct();
+gef_stats_1uM = struct();
 
 % Get dataset structs and arrange in one struct
-% load('CleanGef0_1_200cells');
+load('CleanGef0_1_200cells');
 load('Clean_Gef0_05_174cells');
-% load('Clean_Gef_1uM_200cells');
+load('Clean_Gef_1uM_200cells');
 
-datasets = [Clean_Gef0_05_200cells]; % [CleanGef0_1]
+datasets = [CleanGef0_1 Clean_Gef0_05_200cells Clean_Gef_1uM_200cells]; % [CleanGef0_1] [Clean_Gef0_05_200cells] [Clean_Gef_1uM_200cells]
 
 
 %% Death
@@ -72,8 +72,6 @@ for k=1:numel(datasets)
     
     end
     
-    
-    
     total_deaths_72hrs = sum(subset_stats(1).num_deaths_per_cell) - subset_stats(1).invalid_deaths;
     valid_death_cells_72hrs = numel(subset_stats(1).num_deaths_per_cell) - sum(subset_stats(1).death_flags);
     prob_death_72hrs = total_deaths_72hrs / valid_death_cells_72hrs;
@@ -84,9 +82,13 @@ for k=1:numel(datasets)
     
     output_structs(k).num_cells = numel(subset_stats(1).num_deaths_per_cell);
     output_structs(k).death_events_per_cell = subset_stats(1).num_deaths_per_cell;
+    output_structs(k).death_flags_72hrs = subset_stats(1).death_flags;
+    output_structs(k).num_invalid_deaths_72hrs = subset_stats(1).invalid_deaths;
     output_structs(k).num_cells_good4death_72hrs = valid_death_cells_72hrs;
     output_structs(k).num_deaths_72hrs = total_deaths_72hrs;
     output_structs(k).prob_death_72hrs =  prob_death_72hrs;
+    output_structs(k).death_flags_24hrs = subset_stats(2).death_flags;
+    output_structs(k).num_invalid_deaths_24hrs = subset_stats(2).invalid_deaths;
     output_structs(k).num_cells_good4death_24hrs = valid_death_cells_24hrs;
     output_structs(k).num_deaths_24hrs = total_divs_24hrs;
     output_structs(k).prob_death_24hrs =  prob_death_24hrs;
@@ -141,9 +143,13 @@ for k=1:numel(datasets)
     
     output_structs(k).num_cells = numel(subset_stats(1).num_div_events_per_cell);
     output_structs(k).div_events_per_cell = subset_stats(1).num_div_events_per_cell;
+    output_structs(k).div_flags_72hrs = subset_stats(1).div_flags;
+    output_structs(k).num_invalid_div_events_72hrs = subset_stats(1).invalid_div_events;
     output_structs(k).num_cells_good4divs_72hrs = valid_div_cells_72hrs;
     output_structs(k).num_divs_72hrs = total_divs_72hrs;
     output_structs(k).hrs_per_div_72 = hrs_per_div_72;
+    output_structs(k).div_flags_24hrs = subset_stats(2).div_flags;
+    output_structs(k).num_invalid_div_events_24hrs = subset_stats(2).invalid_div_events;
     output_structs(k).num_cells_good4divs_24hrs = valid_div_cells_24hrs;
     output_structs(k).num_divs_24hrs = total_divs_24hrs;
     output_structs(k).hrs_per_div_24 = hrs_per_div_24;
