@@ -1,4 +1,5 @@
-%% get_div_time_gefitnib
+%% get_div_time_gefitnib.m
+% 
 % This script takes in a Division matrix from single cell trace data and
 % returns the average percent of cells which divide in any given hour. This
 % is determined by creating a matrix of the same dimensions in which dead
@@ -220,4 +221,21 @@ avg_frac_divs_in_1ts_ifd = mean(frac_divs_per_ts_ifd);
 avg_frac_divs_in_1hr_ifd = avg_frac_divs_in_1ts_ifd * 4; % assumes 15min ts
 hrs_to_div_ifd = 1/avg_frac_divs_in_1hr_ifd;
 
-    
+%% Convert hrs to div to hrs in G1 vs S/G2/M and compute transition rates for cell cycle
+time_in_SG2M = 13;  % assumes 13 (hrs) spent in S/G2/M regardless of drug (based on generic 24hr cell cycle)
+time_in_G1 = hrs_to_div - time_in_SG2M; % hrs
+rate_of_S_entry = 1/time_in_G1; % fraction of G1 population which exits and enters S/G2/M per hour (alpha in model)
+rate_of_M_entry = 1/time_in_SG2M; % fraction of S/G2/M cells which exit per hour (beta in model)
+
+% To add these to new_gef_stats_____uM.mat files, use:
+%     hrs_to_div = new_gef_stats_1uM.hrs_to_div;
+% 
+%     time_in_SG2M = 13;  % assumes 13 (hrs) spent in S/G2/M regardless of drug (based on generic 24hr cell cycle)
+%     time_in_G1 = hrs_to_div - time_in_SG2M; % hrs
+%     rate_of_S_entry = 1/time_in_G1; % fraction of G1 population which exits and enters S/G2/M per hour
+%     rate_of_M_entry = 1/time_in_SG2M; % fraction of S/G2/M cells which exit per hour
+% 
+%     new_gef_stats_1uM.rate_of_S_entry = rate_of_S_entry;
+%     new_gef_stats_1uM.rate_of_M_entry = rate_of_M_entry;
+% 
+%     clear hrs_to_div time_in_G1 rate_of_S_entry rate_of_M_entry

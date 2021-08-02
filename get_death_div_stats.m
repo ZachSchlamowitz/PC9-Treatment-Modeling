@@ -1,4 +1,10 @@
 %% get_death_div_stats.m
+%
+% NOTE: This is a first pass attempt (succesful) at obtaining these stats,
+% and uses an "average" algorithm approach that looks at the entire 
+% population of cells over the 72hr period to pull out per hour values. See
+% get_div_time_gefitnib.m for a more sophisticated approach. (8/2/21)
+%
 % This script obtains statistics regarding the death and division 
 % rates/probabilities of cells (e.g., pc-9 non-small cell lung cancer
 % cells) by analyzing their single-cell trace data. This data is to be 
