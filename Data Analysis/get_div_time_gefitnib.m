@@ -18,12 +18,12 @@ ignore_first_division = 1;
 
 
 % Get dataset struct and extract division matrix
-% load('CleanGef0_1_200cells');
-% dataset = CleanGef0_1;
+load('CleanGef0_1_200cells');
+dataset = CleanGef0_1;
 % load('Clean_Gef0_05_174cells');
 % dataset = Clean_Gef0_05_200cells;
-load('Clean_Gef_1uM_200cells');
-dataset = Clean_Gef_1uM_200cells;
+% load('Clean_Gef_1uM_200cells');
+% dataset = Clean_Gef_1uM_200cells;
 
 in_data = dataset(1).divisionMatrixDataset;
 
