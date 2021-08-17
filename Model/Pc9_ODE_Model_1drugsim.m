@@ -6,16 +6,15 @@
 
 % tspan = [0 72];
 tspan = [0:72];
-initconds = [40; 60; 5];
+initconds = [40; 60];
 [time, state] = ode23(@pc9treat_sim, tspan, initconds);
-drug = state(:,3);
 state(:,3) = state(:,1) + state(:,2);  % total population
 
 % Get hourly growth rate, derivative values at each hour
-state_derivs = zeros(size(state,1),3);  % initialize
-growth_rate  = zeros(size(state,1),3);
+state_derivs = zeros(size(state,1),2);  % initialize
+growth_rate  = zeros(size(state,1),2);
 for t = 1:size(time)
-    s0 = state(t,1:3);  % update initial condition
+    s0 = state(t,1:2);  % update initial condition
     dstate_dt = pc9treat_sim(t,s0);  % get derivatives
     state_derivs(t,:) = dstate_dt;  % store derivatives
 
@@ -42,12 +41,12 @@ legend('Vulnerable', 'Resistant', 'Total Population')
 % xlim([-10 106])
 ylim([-10 350])
 
-figure('Name','Drug Concentration v Time')
-plot(time, drug, '-x') 
-title('Concentration of EGFR Inhibitor Over Time')
-xlabel('Time (hrs)')
-ylabel('Drug Concentration (uM)')
-ylim([-1 11])
+% figure('Name','Drug Concentration v Time')
+% plot(time, drug, '-x') 
+% title('Concentration of EGFR Inhibitor Over Time')
+% xlabel('Time (hrs)')
+% ylabel('Drug Concentration (uM)')
+% ylim([-1 11])
 
 
 % Plot Phase Plane

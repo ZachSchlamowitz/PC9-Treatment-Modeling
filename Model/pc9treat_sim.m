@@ -2,11 +2,11 @@
 % Functions File for Pc9_ODE_Model_1drugsim.m
 % Author: Zach Schlamowitz (8/11/21)
 function dstate_dt = pc9treat_sim(t,S0)
-    t_E = 1; % hour of dosing with osimertinib; =NaN when not adding drug
+    t_E = 24; % hour of dosing with osimertinib; =NaN when not adding drug
     E_0 = 5;  % Initial concentration of osimertinib dose (uM)
     beta = 0.055;%1/13; % Fraction of S/G2 cells which enter mitosis in a given hour
 
-    C_E = osi(t, t_E, S0(3));
+    C_E = osi(t, t_E, E_0);
     alp = growth(C_E);
     d_V = death_V(C_E);
     d_R = death_R(C_E);
@@ -14,7 +14,7 @@ function dstate_dt = pc9treat_sim(t,S0)
     dstate_dt = zeros(2,1);
     dstate_dt(1) = -alp*S0(1) - d_V*S0(1) + 2*beta*S0(2);
     dstate_dt(2) =  alp*S0(1) - d_R*S0(2) -   beta*S0(2);
-    dstate_dt(3) = log(1/2)*C_E*(1/2)^(t/48);
+%     dstate_dt(3) = log(1/2)*C_E*(1/2)^(t/48);
 end
 
 % Transition (Progression G1 --> S/G2) Rate
