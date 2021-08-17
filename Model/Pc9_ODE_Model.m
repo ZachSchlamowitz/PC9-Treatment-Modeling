@@ -82,6 +82,7 @@ end
 % end
 
 % Plot
+figure('Name','PC9 ODE Model Time Series')
 plot(time, state, '-o')
 title('Vulnerable and Resistant Populations Over Time')
 xlabel('Time (hrs)')
@@ -91,7 +92,7 @@ xlim([-10 106])
 ylim([-10 350])
 
 % Plot Phase Plane
-figure
+figure('Name','PC9 ODE Model Phase Space')
 plot(state(:,1), state(:,2))
 title('Phase Plane Portrait')
 xlabel('Vulnerable Population')
