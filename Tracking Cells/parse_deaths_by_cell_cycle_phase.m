@@ -6,10 +6,10 @@
 % Author: Zach Schlamowitz (8/13/21)
 
 %% Clean Up Data
-load('fucci_gefitnib_0p1uM_RFP');
-load('fucci_gefitnib_0p1uM_GFP');
-RFP_dataset = fucci_gefitnib_0p1uM_RFP;
-GFP_dataset = fucci_gefitnib_0p1uM_GFP;
+load('fucci_gefitnib_1uM_RFP');
+load('fucci_gefitnib_1uM_GFP');
+RFP_dataset = fucci_gefitnib_1uM_RFP;
+GFP_dataset = fucci_gefitnib_1uM_GFP;
 
 [death_RFP, div_RFP, intensity_RFP] = cleanup_data(RFP_dataset);
 [death_GFP, div_GFP, intensity_GFP] = cleanup_data(GFP_dataset);
@@ -24,74 +24,174 @@ num_timepoints = 282;
 G1_threshold = 2400;
 S_G2_threshold = 3100;
 
-% Initialize output matrices
+%%% Initialize output matrices %%%
+% Cell Counts
+num_G1_cells = zeros(1,282);
+num_SG2_cells = zeros(1,282);
+% num_bothon_cells = zeros(1,282);
+% num_bothoff_cells = zeros(1,282);
+% num_nan = zeros(1,282);
+num_other_cells = zeros(1,282);
+
+% Death Frac Type I: fraction of each population that dies
+frac_G1_cells_dying = zeros(1,282);
+frac_SG2_cells_dying = zeros(1,282);
+frac_other_cells_dying = zeros(1,282);
+
+% Cumulative Value of Death Frac Type I
+cumfrac_G1_cells_dying = zeros(1,282);
+cumfrac_SG2_cells_dying = zeros(1,282);
+cumfrac_other_cells_dying = zeros(1,282);
+
+% Death Counts
 G1_deaths = zeros(1,282);
 G1_deaths_cumulative = zeros(1,282);
-S_deaths = zeros(1,282);
-S_deaths_cumulative = zeros(1,282);
-G2_deaths = zeros(1,282);
-G2_deaths_cumulative = zeros(1,282);
+SG2_deaths = zeros(1,282);
+SG2_deaths_cumulative = zeros(1,282);
 other_deaths = zeros(1,282);
 other_deaths_cumulative = zeros(1,282);
 
-
-% Loop over entries of death matrix looking for death events; for each, 
-% categorize it by cell cycle phase
+%%% Loop over each timepoint for every cell and categorize it by cell cycle phase;
+% categorize deaths by doing same for death matrix %%%
 for i = 1:num_cells
     for j = 1:num_timepoints
+        
+        % Categorize the cell (at the current timepoint)
+        if intensity_RFP(i,j) >= G1_threshold && intensity_GFP(i,j) < S_G2_threshold
+            num_G1_cells(j) = num_G1_cells(j) + 1;                
+        elseif intensity_RFP(i,j) < G1_threshold && intensity_GFP(i,j) >= S_G2_threshold
+            num_SG2_cells(j) = num_SG2_cells(j) + 1;
+%         elseif intensity_RFP(i,j) < G1_threshold && intensity_GFP(i,j) < S_G2_threshold
+%             num_bothoff_cells(j) = num_bothoff_cells(j) + 1;
+%         elseif intensity_RFP(i,j) >= G1_threshold && intensity_GFP(i,j) >= S_G2_threshold
+%             num_bothon_cells(j) = num_bothon_cells(j) + 1;
+        elseif isnan(intensity_RFP(i,j)) || isnan(intensity_GFP(i,j)) || intensity_RFP(i,j) == -1 || intensity_GFP(i,j) == -1
+            fprintf('') % do nothing
+        else
+            num_other_cells(j) = num_other_cells(j) + 1;
+        end
+        
+        % Categorize deaths (at current timepoint by looking at signal of previous timepoint)
         if death_RFP(i,j) == 1                   
             if intensity_RFP(i,j-1) >= G1_threshold && intensity_GFP(i,j-1) < S_G2_threshold
                 G1_deaths(j) = G1_deaths(j) + 1;
-            elseif intensity_RFP(i,j-1) >= G1_threshold && intensity_GFP(i,j-1) >= S_G2_threshold
-                S_deaths(j) = S_deaths(j) + 1;
             elseif intensity_RFP(i,j-1) < G1_threshold && intensity_GFP(i,j-1) >= S_G2_threshold
-                G2_deaths(j) = G2_deaths(j) + 1;
+                SG2_deaths(j) = SG2_deaths(j) + 1;
+            elseif isnan(intensity_RFP(i,j-1)) || isnan(intensity_GFP(i,j-1)) || intensity_RFP(i,j-1) == -1 || intensity_GFP(i,j-1) == -1
+                fprintf('Problematic categorization. Skipping this frame for this cell.\n')
+                continue
             else
                 other_deaths(j) = other_deaths(j) + 1;
-            end
+            end            
         end
+                
+        % Record death counts and fracs
+        frac_G1_cells_dying(j) = G1_deaths(j)/num_G1_cells(j);
+        frac_SG2_cells_dying(j) = SG2_deaths(j)/num_SG2_cells(j);
+        frac_other_cells_dying(j) = other_deaths(j)/num_other_cells(j);
+
+        cumfrac_G1_cells_dying(j) = sum(frac_G1_cells_dying(1:j));
+        cumfrac_SG2_cells_dying(j) = sum(frac_SG2_cells_dying(1:j));
+        cumfrac_other_cells_dying(j) = sum(frac_other_cells_dying(1:j));
+        
         G1_deaths_cumulative(j) = sum(G1_deaths(1:j));
-        S_deaths_cumulative(j) = sum(S_deaths(1:j));
-        G2_deaths_cumulative(j) = sum(G2_deaths(1:j));
+        SG2_deaths_cumulative(j) = sum(SG2_deaths(1:j));
         other_deaths_cumulative(j) = sum(other_deaths(1:j));
+        
     end
 end
 
-total_deaths_cumulative = G1_deaths_cumulative + S_deaths_cumulative + G2_deaths_cumulative + other_deaths_cumulative;
-G1_death_frac = zeros(1,282);
-S_death_frac = zeros(1,282);
-G2_death_frac = zeros(1,282);
-other_death_frac = zeros(1,282);
+total_deaths_cumulative = G1_deaths_cumulative + SG2_deaths_cumulative + other_deaths_cumulative;
+
+% Death Frac Type II: fraction of deaths which occur in each cell cycle phase
+cumfrac_deaths_in_G1 = zeros(1,282);
+cumfrac_deaths_in_SG2 = zeros(1,282);
+cumfrac_deaths_in_other = zeros(1,282);
 
 for j = 1:size(total_deaths_cumulative,2)
     if total_deaths_cumulative(j) == 0
         continue
     else
-        G1_death_frac(j) = G1_deaths_cumulative(j)/total_deaths_cumulative(j);
-        S_death_frac(j) = S_deaths_cumulative(j)/total_deaths_cumulative(j);
-        G2_death_frac(j) = G2_deaths_cumulative(j)/total_deaths_cumulative(j);
-        other_death_frac(j) = other_deaths_cumulative(j)/total_deaths_cumulative(j);
+        cumfrac_deaths_in_G1(j) = G1_deaths_cumulative(j)/total_deaths_cumulative(j);
+        cumfrac_deaths_in_SG2(j) = SG2_deaths_cumulative(j)/total_deaths_cumulative(j);
+        cumfrac_deaths_in_other(j) = other_deaths_cumulative(j)/total_deaths_cumulative(j);
+
     end
 end
 
+categorized_num_cells = [num_G1_cells; num_SG2_cells; num_other_cells]; %num_bothon_cells; num_bothoff_cells];%; num_other_cells; num_nan];
 
-categorized_deaths = [G1_deaths; S_deaths; G2_deaths; other_deaths];
-categorized_deaths_cumulative = [G1_deaths_cumulative; S_deaths_cumulative; G2_deaths_cumulative; other_deaths_cumulative];
-categorized_death_fracs = [G1_death_frac; S_death_frac; G2_death_frac; other_death_frac];
+categorized_deaths = [G1_deaths; SG2_deaths; other_deaths];
+categorized_deaths_cumulative = [G1_deaths_cumulative; SG2_deaths_cumulative; other_deaths_cumulative];
+categorized_death_fracs_T1 = [frac_G1_cells_dying; frac_SG2_cells_dying; frac_other_cells_dying];
+categorized_death_fracs_T1_cumulative = [cumfrac_G1_cells_dying; cumfrac_SG2_cells_dying; cumfrac_other_cells_dying];
+categorized_death_fracs_T2_cumulative = [cumfrac_deaths_in_G1; cumfrac_deaths_in_SG2; cumfrac_deaths_in_other];
 
-%% Plot deaths over time
-% plot_death_frac(categorized_death_fracs);
-% plot_cum_deaths(categorized_deaths_cumulative);
-static_death_fracs(categorized_death_fracs_0p1uM, categorized_death_fracs_1uM)
+%% %% %% Plotting %% %% %%
+%%% Calls %%%
+plot_num_cells(categorized_num_cells);
+plot_death_frac_T1(categorized_death_fracs_T1);
+plot_death_frac_T1_cum(categorized_death_fracs_T1_cumulative);
+plot_death_frac_T2_cum(categorized_death_fracs_T2_cumulative);
+plot_cum_deaths(categorized_deaths_cumulative);
+% static_death_fracs_T2_cum(categorized_death_fracs_0p1uM, categorized_death_fracs_1uM)
 
-function plot_death_frac(categorized_death_fracs)
+%%% DEATH PLOT FUNCS %%%
+function plot_death_frac_T1(categorized_death_fracs)
     f = figure;
     f.Position = [1100 400 1000 500];
     p = plot([1:282], categorized_death_fracs, '-');
-    for i=1:4
+    for i=1:3
         p(i).LineWidth = 3;
     end
-    t = title('Death Fraction per Timestep, Categorized by Cell Cycle Phase, (1uM Gefitinib)');
+    t = title('Fraction of G1 Cells and S/G2 Cells that Die per Timestep, (1uM Gefitinib)');
+    t.FontSize = 20;
+
+    x = xlabel('Time (hrs)');
+    x.FontSize = 18;
+    ticks = [0:8:282];
+    labels = [0:2:72];
+    xticks(ticks)
+    xticklabels(labels)
+
+    y = ylabel('Fraction of Subpopulation');
+    y.FontSize = 18;
+
+    l = legend('G1', 'S/G2', 'Failed to Distinguish', 'Location', 'northwest');
+    l.FontSize = 15;
+end
+function plot_death_frac_T1_cum(categorized_death_fracs)
+    f = figure;
+    f.Position = [1100 400 1000 500];
+    p = plot([1:282], categorized_death_fracs, '-');
+    for i=1:3
+        p(i).LineWidth = 3;
+    end
+    t = title('Cumulative Fraction of G1 Cells and S/G2 Cells that Die per Timestep (1uM Gefitinib)');
+    t.FontSize = 20;
+
+    x = xlabel('Time (hrs)');
+    x.FontSize = 18;
+    ticks = [0:8:282];
+    labels = [0:2:72];
+    xticks(ticks)
+    xticklabels(labels)
+
+    y = ylabel('Fraction of Subpopulation');
+    y.FontSize = 18;
+
+    l = legend('G1', 'S/G2', 'Failed to Distinguish', 'Location', 'northwest');
+    l.FontSize = 15;
+end
+
+function plot_death_frac_T2_cum(categorized_death_fracs)
+    f = figure;
+    f.Position = [1100 400 1000 500];
+    p = plot([1:282], categorized_death_fracs, '-');
+    for i=1:3
+        p(i).LineWidth = 3;
+    end
+    t = title('Cumulative Fraction of Deaths Which Occur in G1 vs S/G2 per Timestep, (1uM Gefitinib)');
     t.FontSize = 20;
 
     x = xlabel('Time (hrs)');
@@ -104,7 +204,7 @@ function plot_death_frac(categorized_death_fracs)
     y = ylabel('Fraction of All Deaths');
     y.FontSize = 18;
 
-    l = legend('G1', 'S', 'G2', 'Other (Unknown)', 'Location', 'northwest');
+    l = legend('G1', 'S/G2', 'Failed to Distinguish', 'Location', 'northwest');
     l.FontSize = 15;
 end
 
@@ -112,7 +212,7 @@ function plot_cum_deaths(categorized_deaths_cumulative)
     f = figure;
     f.Position = [50 400 1000 500];
     p = plot([1:282], categorized_deaths_cumulative, '-');
-    for i=1:4
+    for i=1:3
         p(i).LineWidth = 3;
     end
     t = title('Deaths per Timestep, Categorized by Cell Cycle Phase, (1uM Gefitinib)');
@@ -128,11 +228,11 @@ function plot_cum_deaths(categorized_deaths_cumulative)
     y = ylabel('Cumulative Deaths');
     y.FontSize = 18;
 
-    l = legend('G1', 'S', 'G2', 'Other (Unknown)', 'Location', 'northwest');
+    l = legend('G1', 'S/G2', 'Failed to Distinguish', 'Location', 'northwest');
     l.FontSize = 15;
 end
 
-function static_death_fracs(categorized_death_fracs_0p1uM, categorized_death_fracs_1uM)
+function static_death_fracs_T2_cum(categorized_death_fracs_0p1uM, categorized_death_fracs_1uM)
     % NOTE: need to have run the main algorithm twice and saved outputs to
     % input different dose data into this function!
     categorized_death_fracs_static = ...
@@ -168,6 +268,32 @@ function static_death_fracs(categorized_death_fracs_0p1uM, categorized_death_fra
     labels2 = string(b(2).YData);
     text(xtips2,ytips2,labels2,'HorizontalAlignment','center','VerticalAlignment','bottom')
     
+end
+
+%%% OTHER PLOT FUNCS %%%
+function plot_num_cells(categorized_num_cells)
+    f = figure;
+    f.Position = [50 400 1000 500];
+    p = plot([1:282], categorized_num_cells, '-');
+    for i=1:size(p)
+        p(i).LineWidth = 3;
+    end
+    t = title('Number of Cells in G1 vs S/G2 per Timestep (1uM Gefitinib)');
+    t.FontSize = 20;
+
+    x = xlabel('Time (hrs)');
+    x.FontSize = 18;
+    ticks = [0:8:282];
+    labels = [0:2:72];
+    xticks(ticks)
+    xticklabels(labels)
+
+    y = ylabel('Number of Cells');
+    y.FontSize = 18;
+
+%     l = legend('G1', 'S/G2', 'Both Reporters On', 'Both Reporters Off', 'Location', 'northwest');
+    l = legend('G1', 'S/G2', 'Failed to Distinguish', 'Location', 'northwest');
+    l.FontSize = 15;
 end
 
 %% Clean Up Function
