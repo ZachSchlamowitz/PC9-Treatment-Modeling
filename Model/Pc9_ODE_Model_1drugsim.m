@@ -4,25 +4,53 @@
 
 %% Main equations
 
-% tspan = [0 72];
-tspan = [0:72];
+% User Initializations::
+num_days = 3;
+C_E = 0;
 initconds = [40; 60];
-[time, state] = ode23(@pc9treat_sim, tspan, initconds);
-state(:,3) = state(:,1) + state(:,2);  % total population
 
-% Get hourly growth rate, derivative values at each hour
-state_derivs = zeros(size(state,1),2);  % initialize
-growth_rate  = zeros(size(state,1),2);
-for t = 1:size(time)
-    s0 = state(t,1:2);  % update initial condition
-    dstate_dt = pc9treat_sim(t,s0);  % get derivatives
-    state_derivs(t,:) = dstate_dt;  % store derivatives
+% Internal Initializations:
+% tspan = [0 72];
+tspan = [0:24];
+full_state = zeros(num_days*24,3);
 
-    for col = 1:2
-        % Convert derivative (change/time) to percentage change (/time (hr))
-        growth_rate(t,col) = state_derivs(t,col)/state(t,col);
-    end
+
+for day = 1:num_days
+    prompt_t_E = strcat("Specify hour to dose with EGFR inhibitor (1-24) for Day ", num2str(day), ": "); % FLAG: need to figure out what happens when t<t_E / is it a problem
+    t_E = input(prompt_t_E); % +1? To account for fact that matlab vars are not zero based?
+    C_E = C_E + input("Specify dose of EGFR inhibitor (uM): ");
+
+    [time, state] = ode23(@(tspan, initconds) pc9treat_sim(tspan, initconds, t_E, C_E), tspan, initconds);
+    state(:,3) = state(:,1) + state(:,2);  % total population
+    
+    % Get remaining EGFRi concentration at end of 24 hour period
+    C_E = C_E*((1/2)^(24/48));  % FLAG: need to figure out how to get C_E from one day to carry over to next without overwriting or setting C_E to 0
+    
+    % Add Current State Trajectories to the Record
+    full_state((1+24*(day-1)):(1+24*(day)),:) = state;
+    
+    % Update conditions for next iteration
+    initconds(1) = state(end,1);
+    initconds(2) = state(end,2);
+    
 end
+
+time = [0:24*num_days]';
+
+% 
+% % Get hourly growth rate, derivative values at each hour
+% state_derivs = zeros(size(state,1),2);  % initialize
+% growth_rate  = zeros(size(state,1),2);
+% for t = 1:size(time)
+%     s0 = state(t,1:2);  % update initial condition
+%     dstate_dt = pc9treat_sim(t,s0);  % get derivatives
+%     state_derivs(t,:) = dstate_dt;  % store derivatives
+% 
+%     for col = 1:2
+%         % Convert derivative (change/time) to percentage change (/time (hr))
+%         growth_rate(t,col) = state_derivs(t,col)/state(t,col);
+%     end
+% end
 
 % growth_rate_hr = zeros(size(state,1),2); % initialize
 % for t = 1:(size(time)-1)
@@ -33,7 +61,7 @@ end
 
 % Plot
 figure('Name','PC9 ODE Model SIM Time Series')
-plot(time, state, '-o')
+plot(time, full_state, '-o')
 title('Vulnerable and Resistant Populations Over Time')
 xlabel('Time (hrs)')
 ylabel('Gross Population')

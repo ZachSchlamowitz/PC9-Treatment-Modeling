@@ -1,9 +1,11 @@
 %% pc9treat_sim.m
 % Functions File for Pc9_ODE_Model_1drugsim.m
 % Author: Zach Schlamowitz (8/11/21)
-function dstate_dt = pc9treat_sim(t,S0)
-    t_E = 24; % hour of dosing with osimertinib; =NaN when not adding drug
-    E_0 = 5;  % Initial concentration of osimertinib dose (uM)
+function dstate_dt = pc9treat_sim(t,S0, t_E, E_0)
+%     t_E = NaN; % hour of dosing with osimertinib; =NaN when not adding drug
+%     t_E = input('Specify hour to dose with EGFR inhinibor (1-24): ');
+%     E_0 = input('Specify dose of EGFR inhinibor (uM): ');
+%     E_0 = 5;  % Initial concentration of osimertinib dose (uM)
     beta = 0.055;%1/13; % Fraction of S/G2 cells which enter mitosis in a given hour
 
     C_E = osi(t, t_E, E_0);
