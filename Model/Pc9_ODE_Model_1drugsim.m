@@ -4,34 +4,41 @@
 
 %% Main equations
 
-% User Initializations::
+% User Initializations:
 num_days = 3;
-C_E = 0;
-initconds = [40; 60];
+% C_E = 0;
+initconds = [40; 60; 0];  % number of cells in [G1 S/G2] and EGFRi concentration [EGFRi]
 
 % Internal Initializations:
 % tspan = [0 72];
 tspan = [0:24];
 full_state = zeros(num_days*24,3);
-
+full_drug_state = zeros(num_days*24,1);
+C_E_remaining = zeros(num_days,1);
 
 for day = 1:num_days
-    prompt_t_E = strcat("Specify hour to dose with EGFR inhibitor (1-24) for Day ", num2str(day), ": "); % FLAG: need to figure out what happens when t<t_E / is it a problem
-    t_E = input(prompt_t_E); % +1? To account for fact that matlab vars are not zero based?
-    C_E = C_E + input("Specify dose of EGFR inhibitor (uM): ");
-
-    [time, state] = ode23(@(tspan, initconds) pc9treat_sim(tspan, initconds, t_E, C_E), tspan, initconds);
-    state(:,3) = state(:,1) + state(:,2);  % total population
-    
+    % Get hour of dosing and add dose amount to current cumulative dose
+%     prompt_t_E = strcat("Specify hour to dose with EGFR inhibitor (1-24) for Day ", num2str(day), ": "); % FLAG: need to figure out what happens when t<t_E / is it a problem
+%     t_E = input(prompt_t_E); % +1? To account for fact that matlab vars are not zero based?
+%     C_E = C_E + input("Specify dose of EGFR inhibitor (uM): ");
+    prompt_C_E = strcat("Specify dose of EGFR inhibitor (uM) for day", num2str(day), ": ");
+    C_E_added = input(prompt_C_E);
+    initconds(3) = initconds(3) + C_E_added;
+%     [time, state] = ode23(@(tspan, initconds) pc9treat_sim(tspan, initconds, t_E, C_E), tspan, initconds);
+    [time, state] = ode23(@pc9treat_sim, tspan, initconds);
+    % Back out total population
+%     state(:,3) = state(:,1) + state(:,2);
+    total_pop = state(:,1) + state(:,2);
     % Get remaining EGFRi concentration at end of 24 hour period
-    C_E = C_E*((1/2)^(24/48));  % FLAG: need to figure out how to get C_E from one day to carry over to next without overwriting or setting C_E to 0
+    C_E_remaining(day) = initconds(3)*((1/2)^(24/48));  % FLAG: need to figure out how to get C_E from one day to carry over to next without overwriting or setting C_E to 0
     
-    % Add Current State Trajectories to the Record
-    full_state((1+24*(day-1)):(1+24*(day)),:) = state;
-    
+    % Add current state trajectories to the record
+    full_state((1+24*(day-1)):(1+24*(day)),:) = [state(:,1:2) total_pop];
+    full_drug_state((1+24*(day-1)):(1+24*(day)),:) = state(:,3);
     % Update conditions for next iteration
     initconds(1) = state(end,1);
     initconds(2) = state(end,2);
+    initconds(3) = state(end,3);
     
 end
 
@@ -69,12 +76,13 @@ legend('Vulnerable', 'Resistant', 'Total Population')
 % xlim([-10 106])
 ylim([-10 350])
 
-% figure('Name','Drug Concentration v Time')
-% plot(time, drug, '-x') 
-% title('Concentration of EGFR Inhibitor Over Time')
-% xlabel('Time (hrs)')
-% ylabel('Drug Concentration (uM)')
-% ylim([-1 11])
+figure('Name','Drug Concentration v Time')
+plot(time, full_drug_state, '-x') 
+title('Concentration of EGFR Inhibitor Over Time')
+xlabel('Time (hrs)')
+ylabel('Drug Concentration (uM)')
+xlim([0 75])
+ylim([-1 11])
 
 
 % Plot Phase Plane
