@@ -88,13 +88,13 @@ ylim([-1 11])
 
 %%% Time Series Plot 3: Parameter Values vs Time
 % Obtain and plot trajectories for alpha, d_V and d_R
-alpha_trajectory = growth(drug_trajectory);
-d_V_trajectory = death_V(drug_trajectory);
-d_R_trajectory = death_R(drug_trajectory);
-trajectories = [alpha_trajectory d_V_trajectory d_R_trajectory];
+% alpha_trajectory = growth(drug_trajectory);
+% d_V_trajectory = death_V(drug_trajectory);
+% d_R_trajectory = death_R(drug_trajectory);
+% plotting_trajectories = [alpha_trajectory d_V_trajectory d_R_trajectory];
 
 % figure('Name', '/alpha, d_V, and d_R Trajectories')
-% plot(time, trajectories, '-o')
+% plot(time, plotting_trajectories, '-o')
 % title('Hourly Parameter Rates During Simulation')
 % xlabel('Time (hrs)')
 % ylabel('Rate (Fraction of Relevant Population per hour)')

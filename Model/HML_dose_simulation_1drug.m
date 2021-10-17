@@ -13,12 +13,12 @@
 
 %% CODE
 % Initialize doses (nM)
-H = 1150;%1250;
-M = 650;%600;
-L = 200;%250;
+H = 1.150;%1250;
+M = 0.650;%600;
+L = 0.200;%250;
 
 % Initialize MTD
-MTD = 1456.69; % nM
+MTD = 1.45669; % µM
 
 % Test to make sure dose choices fit all assumptions/conditions
 assert(H*(.5^.5) + H > MTD, "Chosen dose values (High, Medium, and Low) fail required conditions.")
@@ -72,12 +72,41 @@ for i = 1:size(dose_schedules,1)
     
 end
 
-% Simulate ODE model for each valid combination of doses
-trajectories = cell(size(dose_schedules,1),2);
+%% Simulate ODE model for each valid combination of doses
+% Max population over simulation period (i.e., total population when dose strategy is 0µM every day)
+max_pop = 747.461853668818;  % obtained by running simulation with all zeros
 
-for i = 1:size(dose_schedules,1)
-    if dose_schedules(i,:) ~= [NaN NaN NaN]
-        [pop_trajectory drug_trajectory] = variable_daily_dose_sim(dose_schedules(i,:));
-        trajectories(i,:) = {pop_trajectory, drug_trajectory};
+trajectories = cell(size(dose_schedules,1),6);  % initialize output cell array
+
+for i = 1:size(dose_schedules,1)  % loop over dose schedules
+    if dose_schedules(i,:) ~= [NaN NaN NaN]  % only consider valid dose schedules
+        [pop_trajectory, drug_trajectory] = variable_daily_dose_sim(dose_schedules(i,:));  % simulate dose schedule's effects on cell populations
+        
+        % Store outputs
+        trajectories{i,1} = get_dose_name(dose_schedules(i,:), H, M, L);
+        trajectories(i,2:3) = {pop_trajectory, drug_trajectory};
+        trajectories{i,4} = pop_trajectory(end,3);  % total population remaining at end of simulation
+        trajectories{i,5} = max_pop - pop_trajectory(end,3);  % total cell death achieved by dose schedule
+        trajectories{i,6} = trajectories{i,5}/sum(dose_schedules(i,:));  % Effective Death: total cell death achieved by dose schedule normalized by total amount of drug given (i.e., number of dead cells per unit drug, µM)
     end
+end
+
+% To identify which dosing strategy was most effective, we rank strategies
+% by their Effective Deaths:
+[ranked_effdeaths, indices] = sort(cell2mat(trajectories(:,6)));
+sorted_trajectories = trajectories(indices,:);
+
+
+%% Aux Functions
+function name = get_dose_name(dose_strategy, H, M, L)
+    name = "";
+    for j = 1:size(dose_strategy,2)
+        if dose_strategy(j) == H
+            name = name + "H";
+        elseif dose_strategy(j) == M
+            name = name + "M";
+        elseif dose_strategy(j) == L
+            name = name + "L";
+        end
+    end      
 end
