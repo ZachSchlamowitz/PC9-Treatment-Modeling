@@ -30,37 +30,39 @@ assert((M*(.5^.5) + M)*(.5^.5) + M < MTD, "Chosen dose values (High, Medium, and
 assert((H*(.5^.5) + L)*(.5^.5) + M < MTD, "Chosen dose values (High, Medium, and Low) fail required conditions.")
 
 % Get all possible combinations of doses (i.e. theoretical schedules)
-dose_schedules = zeros(3^3, 3);
-dose_schedules = [H H H; 
-                  H H M; 
-                  H H L; 
-                  H M H; 
-                  H M M; 
-                  H M L;
-                  H L H; 
-                  H L M; %
-                  H L L; %
-                  
-                  M H H; 
-                  M H M; 
-                  M H L; 
-                  M M H; 
-                  M M M; %
-                  M M L; %
-                  M L H; % FLAG: At H=1250,M=600,L=250 this does not work (=1727). But should it?
-                  M L M; %
-                  M L L; %
-                  
-                  L H H; 
-                  L H M; 
-                  L H L; %
-                  L M H; 
-                  L M M; %
-                  L M L; %
-                  L L H; % FLAG: At H=1250,M=600,L=250 this does not work (=1552) but at 1150/650/200 it does.
-                  L L M; %
-                  L L L];% 
-              
+dose_schedules = get_dosing_schedules(3, H, M, L);
+
+% dose_schedules = zeros(3^3, 3);
+% dose_schedules = [H H H; 
+%                   H H M; 
+%                   H H L; 
+%                   H M H; 
+%                   H M M; 
+%                   H M L;
+%                   H L H; 
+%                   H L M; %
+%                   H L L; %
+%                   
+%                   M H H; 
+%                   M H M; 
+%                   M H L; 
+%                   M M H; 
+%                   M M M; %
+%                   M M L; %
+%                   M L H; % FLAG: At H=1250,M=600,L=250 this does not work (=1727). But should it?
+%                   M L M; %
+%                   M L L; %
+%                   
+%                   L H H; 
+%                   L H M; 
+%                   L H L; %
+%                   L M H; 
+%                   L M M; %
+%                   L M L; %
+%                   L L H; % FLAG: At H=1250,M=600,L=250 this does not work (=1552) but at 1150/650/200 it does.
+%                   L L M; %
+%                   L L L];% 
+%               
  % Get rid of biologically infeasible schedules (those that exceed MTD)
 for i = 1:size(dose_schedules,1)
    % Dose after day 2 and after day 3
@@ -93,7 +95,7 @@ end
 
 % To identify which dosing strategy was most effective, we rank strategies
 % by their Effective Deaths:
-[ranked_effdeaths, indices] = sort(cell2mat(trajectories(:,6)));
+[ranked_effdeaths, indices] = sort(cell2mat(trajectories(:,5)));
 sorted_trajectories = trajectories(indices,:);
 
 
