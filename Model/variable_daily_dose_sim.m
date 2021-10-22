@@ -7,7 +7,7 @@ function [population_trajectories, drug_trajectory] = variable_daily_dose_sim(do
 %% Main equations
 
 % User Initializations:
-num_days = 3;
+num_days = size(dose_by_day, 2);
 initconds = [40; 60; 0];  % number of cells in [G1 S/G2 XX] and EGFRi concentration [XX XX EGFRi]
 
 % Internal Initializations:
@@ -24,7 +24,7 @@ for day = 1:num_days
     C_E_added = dose_by_day(day);
     initconds(3) = initconds(3) + C_E_added;
 
-    % Numerically approximate solution to ODEs, use solutions and simulate the period
+    % Numerically approximate solution to ODEs, use solutions and simulate over the period
     [time, state] = ode23(@pc9treat_sim, tspan, initconds);
    
     % Back out total population
