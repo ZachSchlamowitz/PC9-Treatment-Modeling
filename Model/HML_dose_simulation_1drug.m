@@ -33,7 +33,10 @@ assert((H*(.5^.5) + L)*(.5^.5) + M < MTD, "Chosen dose values (High, Medium, and
 num_days = 7;
 
 % Get all possible permutations of doses (i.e. theoretical schedules)
+tic
+fprintf('Obtaining all possible dosing schedules. \n')
 dose_schedules = get_dosing_schedules(num_days, H, M, L);
+toc
 
 % Get rid of biologically infeasible schedules (those that exceed MTD)
 
