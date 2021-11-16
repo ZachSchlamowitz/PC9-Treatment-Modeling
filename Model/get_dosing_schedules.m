@@ -21,7 +21,7 @@
 % 
 % end
 
-%get_dosing_schedules(4, 3,2,1)
+% get_dosing_scheduless(7, 3,2,1)
 
 function treatments = get_dosing_schedules(n, H, M, L)
         treatments = zeros(3^n, n);
@@ -40,3 +40,5 @@ function treatments = get_dosing_schedules(n, H, M, L)
             end
         end
 end
+
+
