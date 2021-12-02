@@ -4,6 +4,8 @@
 
 function auc = get_AUC(schedule)
     
+    drug_half_life = 3.6124; % (hrs) default: 48; 99% decay in 24 hrs: 3.6124
+
     t = 0:size(schedule,2)*24;
     
     dosing_schedule = zeros(1,size(t,2));
@@ -14,6 +16,8 @@ function auc = get_AUC(schedule)
 %     % Full version: Layer "basis" functions, 1 for drug concentration 
 %     % resulting from each day of treatment
 %     funcs_vals = zeros(size(schedule,2)*24);
+
+
     drug_concentrations = zeros(size(schedule,2),size(t,2));
     for i = 1:size(schedule,2)            
         initial_dose = schedule(1,i);
@@ -22,12 +26,11 @@ function auc = get_AUC(schedule)
         for j=1:size(dosing_schedule,2)
             if j < t_start
                 drug_concentrations(i,j) = 0;
-%             elseif j == t_start
-%                 drug_concentration(i,j) = initial_dose;
             else
-                drug_concentrations(i,j) = initial_dose.*(1/2).^(((t(1,j)+1)-t_start)/48);  % 99% in 24hrs half life: 3.6124
+                drug_concentrations(i,j) = initial_dose.*(1/2).^(((t(1,j)+1)-t_start)/drug_half_life);
             end
         end
+        
         
 %         % assuming only one day of dosing
 %         received_dose = false;
@@ -55,7 +58,7 @@ function auc = get_AUC(schedule)
     % (1/2)*dose
     
     plot(t,drug_concentration, '-o')
-%     axis([0 size(schedule,2)*24 0 1.25*initial_dose])
+    axis([0 150 0 1.2])
     
     auc = trapz(t,drug_concentration);
 end

@@ -44,7 +44,7 @@ for i = 1:size(dose_schedules,1)
     remainder = dose_schedules(i,1);
     for j = 1:size(dose_schedules,2)-1
         % Find dose after current day and add next day's treatment
-        remainder = get_24hr_remaining_dose(remainder);
+        remainder = get_24hr_remaining_dose(remainder); % NOTE: Assume drug half life of 48hrs here, for consistency
         remainder = remainder + dose_schedules(i,j+1);
 
         % Check if feasible; replace that schedule with NaNs if not
@@ -112,7 +112,8 @@ sorted_trajectories{1,7} = "Death /unit Drug";
 
 %% Aux Functions
 function remainder = get_24hr_remaining_dose(initial_dose)
-    remainder = initial_dose * (1/2)^(24/48);
+    drug_half_life = 48; % (hrs) default: 48
+    remainder = initial_dose * (1/2)^(24/drug_half_life);  % FLAG half life
 end
 
 function name = get_dose_name(dose_strategy, H, M, L)

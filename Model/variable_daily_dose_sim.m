@@ -1,8 +1,19 @@
 function [population_trajectories, drug_trajectory] = variable_daily_dose_sim(dose_by_day)
-
-%% Pc9_ODE_Model_1drugsim.m
+%% variable_daily_dose_sim.m (adapted from Pc9_ODE_Model_1drugsim.m)
 % 1 Drug ODE Model of PC-9 Cell Response to treatment with varying doses of EGFR inhibition
 % Author: Zach Schlamowitz (8/11/21)
+
+%% Function Header
+% INPUTS:
+% --> dose_by_day: 1xn matrix of one n-day dosing/treatment schedule, each
+%                  column is a given day's dose
+%
+% OUTPUTS: 
+% <-- population_trajectories: matrix of population state variable values
+%                              (cell count) at each hour in dosing period
+% <-- drug_trajectory: matrix: matrix of drug state value (drug
+%                              concentration) at each hour in dosing period
+%
 
 %% Main equations
 
@@ -16,7 +27,9 @@ tspan = [0:24];  % Duration of one "simulation period" (time between dosing) in 
 population_trajectories = zeros(num_days*24,3);  % vector to house full trajectory of Vulnerable, Resistant, and Total populations
 drug_trajectory = zeros(num_days*24,1);  % vector house full trajectory of EGRFi drug concentration over time
 C_E_remaining = zeros(num_days,1);  % vector to house drug concentration that SHOULD remain at the end of each day (according to exponential decay equation)
+drug_half_life = 3.6124; % (hrs) default: 48; % NOTE: this is used to identify the expected [Drug] remaining at end of a day, NOT the simulated value. The half-life variable stored in pc9treat_sim is resposible for that.
 
+% Simulate ODE model of the system over (each day of) the dosing period:
 for day = 1:num_days
     % Get amount of drug to add during current simulation period
 %     prompt_C_E = strcat("Specify dose of EGFR inhibitor (uM) for day", num2str(day), ": ");
@@ -31,7 +44,7 @@ for day = 1:num_days
     total_pop = state(:,1) + state(:,2);
     
     % Get EGFRi concentration that SHOULD remain at end of 24 hour period
-    C_E_remaining(day) = initconds(3)*((1/2)^(24/48)); 
+    C_E_remaining(day) = initconds(3)*((1/2)^(24/drug_half_life)); % FLAG half life
     
     % Add current state trajectories to the record
     population_trajectories((1+24*(day-1)):(1+24*(day)),:) = [state(:,1:2) total_pop];  % insert this simulation period's subset of the full trajectory into its appropriate hour range of total simulation

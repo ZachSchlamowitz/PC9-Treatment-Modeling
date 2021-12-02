@@ -5,7 +5,7 @@
 % Author: Zach Schlamowitz
 % Date: 11/29/21 
 
-function plot = boxplot_cell_survival_bin_by_dose(trajectories)
+function boxplot_cell_survival_bin_by_dose(trajectories)
     
     % Create matrices for plotting; one for data, one for binning / groups
     surviving_cell_counts = cell2mat(trajectories(2:end,4));
